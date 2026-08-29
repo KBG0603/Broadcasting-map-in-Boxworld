@@ -4,7 +4,6 @@
 
 
 
-import pandas as pd
 
 import sympy as sp
 
@@ -88,28 +87,6 @@ def PTrX(rho, sys, dim):
     )
 
 
-##############################################################################
-# Swap operator
-##############################################################################
-
-def Swap(d):
-
-    I = sp.eye(d)
-    S = sp.zeros(d*d, d*d)
-
-    for i in range(d):
-        for j in range(d):
-
-            ketbra_ij = I[:,i] * I[:,j].T
-
-            S += to_sp(
-                tensor(
-                    ketbra_ij,
-                    ketbra_ij.T
-                )
-            )
-
-    return sp.expand(S)
 
 ##############################################################################
 # Basis vectors (standard orthogonal basis vector in a 3-dimensional space)
@@ -342,35 +319,9 @@ for x in basis:
 
 
 ##############################################################################
-# Broadcasting equations
+# Broadcasting constraint
 ##############################################################################
 
-Swap3 = Swap(3)
-Id3   = sp.eye(3)
-
-SwapA = to_sp(
-    tensor(
-        Swap3,
-        Id3,
-        Id3
-    )
-)
-
-SwapB = to_sp(
-    tensor(
-        Id3,
-        Id3,
-        Swap3
-    )
-)
-
-
-SwapAB = to_sp(
-    tensor(
-        Swap3,
-        Swap3
-    )
-)
 
 
 
@@ -391,49 +342,7 @@ for X in basis2:
 
     Y = B(rho, sigma)
 
-    #
-    # Broadcasting conditions
-    #
-
-    lhs1 = PTrX(
-                Y,
-                [2,4],
-                [3,3,3,3]
-            )
-
-    lhs2 = PTrX(
-                Y,
-                [1,3],
-                [3,3,3,3]
-            )
-
-    rhs = to_sp(
-            tensor(rho, sigma)
-          )
-
-    for k in range(9):
-
-        eqs.append(
-            sp.expand(lhs1[k] - rhs[k])
-        )
-
-        eqs.append(
-            sp.expand(lhs2[k] - rhs[k])
-        )
-
-  #
-  # SWAP symmetry
-  #
-
-    Yswap = SwapAB * Y
     
-    for k in range(81):
-    
-        eqs.append(
-            sp.expand(
-                Yswap[k] - Y[k]
-            )
-        )
         
         
 ## Classical consistency: adjacent adjacent 
@@ -554,14 +463,6 @@ for rho in adj_states:
 
 
 
-
-##############################################################################
-# Remove duplicate equations
-##############################################################################
-
-eqs = list(dict.fromkeys(
-    sp.expand(eq) for eq in eqs
-))
 
 
 
